@@ -1,0 +1,279 @@
+GOALS:
+    ACHIEVE clean_room;
+FACTS:
+    FACT RobotA 0 0;
+    FACT DirectionA "right";
+    FACT DestinationA 0 0;
+    FACT RobotB 7 0;
+    FACT DirectionB "left";
+    FACT DestinationB 0 0;
+
+    FACT dust0 6 0;
+    FACT dust1 3 0;
+    FACT dust2 2 1;
+    FACT dust3 4 2;
+    FACT dust4 1 2;
+    FACT dust5 3 3;
+    FACT dust6 0 3;
+    FACT dust7 1 5;
+    FACT dust8 4 4;
+    FACT dust9 3 6;
+    FACT dust10 5 5;
+
+    FACT exit 7 6;
+
+    FACT Target 0 0;
+PLAN: {
+    NAME:
+        "Clean my room of dust particles followed by exit at 7 6"
+    GOAL:
+        ACHIEVE clean_room;
+    DOCUMENTATION:
+        "Set the target particle and direction for Robot A in order to move towards, then move Robot A towards the target particle. Move towards exit if not particles are left or found.Then, repeat for Robot B as well"
+    BODY:
+        RETRIEVE RobotA $x_A $y_A;
+        RETRIEVE RobotB $x_B $y_B;
+        RETRIEVE exit $exit_x $exit_y;
+
+        EXECUTE println "Robot A starting position at: (" $x_A "," $y_A ")" ;
+        EXECUTE println "Robot B starting position at: (" $x_B "," $y_B ")\n" ;
+
+        ASSIGN $dust_cleared 0;
+        ASSIGN $clean_complete 0;
+        ASSIGN $exitedA 0;
+        ASSIGN $exitedB 0;
+
+        WHILE: TEST(== $clean_complete 0) {
+            WHEN: TEST(== $exitedA 0) {
+                PERFORM set_target $dust_cleared;
+
+                PERFORM rotate_robotA;
+                
+                PERFORM move_robotA;
+
+                RETRIEVE Target $tar_x $tar_y;
+                RETRIEVE RobotA $x_A $y_A;
+
+                WHEN: TEST(&& (== $x_A $tar_x) (== $y_A $tar_y)) {
+                    WHEN: TEST(< $dust_cleared 11) {
+                        EXECUTE println "\nDust collected at (" $tar_x "," $tar_y ") by Robot A\n";
+                        ASSIGN $dust_cleared (+ $dust_cleared 1);
+
+                        WHEN: TEST(== $dust_cleared 11) {
+                            EXECUTE println "All dust particles are cleaned!\n";
+                        };
+                    };
+                    WHEN: TEST(&& (== $x_A $exit_x) (== $y_A $exit_y)) {
+                        EXECUTE println "\nRobot A exited at (" $tar_x "," $tar_y ")\n";
+                        ASSIGN $exitedA 1;
+                    };
+                };
+            };
+
+            WHEN: TEST(== $exitedB 0) {
+                PERFORM set_target $dust_cleared;
+
+                PERFORM rotate_robotB;
+                
+                PERFORM move_robotB;
+
+                RETRIEVE Target $tar_x $tar_y;
+                RETRIEVE RobotB $x_B $y_B;
+                
+                WHEN: TEST(&& (== $x_B $tar_x) (== $y_B $tar_y)) {
+                    WHEN: TEST(< $dust_cleared 11) {
+                        EXECUTE println "\t\nDust collected at (" $tar_x "," $tar_y ") by Robot B\n";
+                        ASSIGN $dust_cleared (+ $dust_cleared 1);
+                        WHEN: TEST(== $dust_cleared 11) {
+                            EXECUTE println "All dust particles are cleaned!\n";
+                        };
+                    };
+                    WHEN: TEST(&& (== $x_B $exit_x) (== $y_B $exit_y)) {
+                        EXECUTE println "\t\nRobot B exited at (" $tar_x "," $tar_y ")\n";
+                        ASSIGN $exitedB 1;
+                    };
+                };
+            };
+            EXECUTE println;
+            WHEN: TEST(&& (== $x_A $exit_x) (== $y_A $exit_y) (== $x_B $exit_x) (== $y_B $exit_y)) {
+                ASSIGN $clean_complete 1;
+                EXECUTE println "Both robots have exited successfully";
+            };
+        };
+}
+PLAN: {
+    NAME:
+        "Set dust particle/goal for the robot to move towards"
+    GOAL:
+        ACHIEVE set_target $dust_cleared;
+    DOCUMENTATION:
+        "Gets all dust particles' coordinates(x and y), then set particle for the robot to move towards based on how many particles are left at room"
+    BODY:
+        RETRIEVE dust0 $dx0 $dy0;
+        RETRIEVE dust1 $dx1 $dy1;
+        RETRIEVE dust2 $dx2 $dy2;
+        RETRIEVE dust3 $dx3 $dy3;
+        RETRIEVE dust4 $dx4 $dy4;
+        RETRIEVE dust5 $dx5 $dy5;
+        RETRIEVE dust6 $dx6 $dy6;
+        RETRIEVE dust7 $dx7 $dy7;
+        RETRIEVE dust8 $dx8 $dy8;
+        RETRIEVE dust9 $dx9 $dy9;
+        RETRIEVE dust10 $dx10 $dy10;
+        RETRIEVE exit $exit_x $exit_y;
+
+        WHEN: TEST(== $dust_cleared 0) {
+            UPDATE (Target) (Target $dx0 $dy0);
+        };
+        WHEN: TEST(== $dust_cleared 1) {
+            UPDATE (Target) (Target $dx1 $dy1);
+        };
+        WHEN: TEST(== $dust_cleared 2) {
+            UPDATE (Target) (Target $dx2 $dy2);
+        };
+        WHEN: TEST(== $dust_cleared 3) {
+            UPDATE (Target) (Target $dx3 $dy3);
+        };
+        WHEN: TEST(== $dust_cleared 4) {
+            UPDATE (Target) (Target $dx4 $dy4);
+        };
+        WHEN: TEST(== $dust_cleared 5) {
+            UPDATE (Target) (Target $dx5 $dy5);
+        };
+        WHEN: TEST(== $dust_cleared 6) {
+            UPDATE (Target) (Target $dx6 $dy6);
+        };
+        WHEN: TEST(== $dust_cleared 7) {
+            UPDATE (Target) (Target $dx7 $dy7);
+        };
+        WHEN: TEST(== $dust_cleared 8) {
+            UPDATE (Target) (Target $dx8 $dy8);
+        };
+        WHEN: TEST(== $dust_cleared 9) {
+            UPDATE (Target) (Target $dx9 $dy9);
+        };
+        WHEN: TEST(== $dust_cleared 10) {
+            UPDATE (Target) (Target $dx10 $dy10);
+        };
+        WHEN: TEST(>= $dust_cleared 11) {
+            UPDATE (Target) (Target $exit_x $exit_y);
+        };
+}
+PLAN:{
+    NAME:
+        "Determine in which direction for robot A to move by counter-clockwise order, then move robot A in the specified direction as well"
+    GOAL:
+        ACHIEVE rotate_robotA;
+    DOCUMENTATION:
+        "Determines direction of robot A through identifying how far robot A is from the target particle in order: right, up, left, down"
+    BODY:
+        RETRIEVE Target $tar_x $tar_y;
+        RETRIEVE RobotA $x_A $y_A;
+
+        ASSIGN $movedA 0;
+        WHEN: TEST(&& (< $x_A $tar_x) (== $movedA 0)) {
+            UPDATE (DirectionA) (DirectionA "right");
+            ASSIGN $movedA 1;
+        };
+        WHEN: TEST(&& (< $y_A $tar_y) (== $movedA 0)) {
+            UPDATE (DirectionA) (DirectionA "up");
+            ASSIGN $movedA 1;
+        };
+        WHEN: TEST(&& (> $x_A $tar_x) (== $movedA 0)) {
+            UPDATE (DirectionA) (DirectionA "left");
+            ASSIGN $movedA 1;
+        };
+        WHEN: TEST(&& (> $y_A $tar_y) (== $movedA 0)) {
+            UPDATE (DirectionA) (DirectionA "down");
+            ASSIGN $movedA 1;
+        };
+}
+PLAN:{
+    NAME:
+        "Instruction to move robot A one step on its direction"
+    GOAL:
+        ACHIEVE move_robotA;
+    DOCUMENTATION:
+        "Move robot A based on its direction given"
+    BODY:
+        RETRIEVE RobotA $x $y;
+        RETRIEVE DirectionA $direction;
+        RETRIEVE Target $tar_x $tar_y;
+        WHEN: TEST(== $direction "right"){
+            UPDATE (RobotA) (RobotA (+ $x 1) $y);
+        };
+        WHEN: TEST(== $direction "left"){
+            UPDATE (RobotA) (RobotA (- $x 1) $y);
+        };
+        WHEN: TEST(== $direction "up"){
+            UPDATE (RobotA) (RobotA $x (+ $y 1));
+        };
+        WHEN: TEST(== $direction "down"){
+            UPDATE (RobotA) (RobotA $x (- $y 1));
+        };
+
+        RETRIEVE RobotA $x $y;
+        EXECUTE println "Robot A moved " $direction;
+        EXECUTE println "Robot A position: ("$x","$y")";
+    FAILURE:
+        EXECUTE println "Failed to move A..Please try again!.\n";
+}
+PLAN:{
+    NAME:
+        "Determine which direction for robot B to move by counter-clockwise order, then move robot B in the specified direction"
+    GOAL:
+        ACHIEVE rotate_robotB;
+    DOCUMENTATION:
+        "Determines direction of robot B by determining how far robot B is from the target particle in order: right, up, left, down"
+    BODY:
+        RETRIEVE Target $tar_x $tar_y;
+        RETRIEVE RobotB $x_B $y_B;
+
+        ASSIGN $movedB 0;
+        WHEN: TEST(&& (< $x_B $tar_x) (== $movedB 0)) {
+            UPDATE (DirectionB) (DirectionB "right");
+            ASSIGN $movedB 1;
+        };
+        WHEN: TEST(&& (< $y_B $tar_y) (== $movedB 0)) {
+            UPDATE (DirectionB) (DirectionB "up");
+            ASSIGN $movedB 1;
+        };
+        WHEN: TEST(&& (> $x_B $tar_x) (== $movedB 0)) {
+            UPDATE (DirectionB) (DirectionB "left");
+            ASSIGN $movedB 1;
+        };
+        WHEN: TEST(&& (> $y_B $tar_y) (== $movedB 0)) {
+            UPDATE (DirectionB) (DirectionB "down");
+            ASSIGN $movedB 1;
+        };
+}
+PLAN:{
+    NAME:
+        "Instruction to move robot B as one step from its current direction"
+    GOAL:
+        ACHIEVE move_robotB;
+    DOCUMENTATION:
+        "Move robot B based on direction given"
+    BODY:
+        RETRIEVE RobotB $x $y;
+        RETRIEVE DirectionB $direction;
+        RETRIEVE Target $tar_x $tar_y;
+        WHEN: TEST(== $direction "right"){
+            UPDATE (RobotB) (RobotB (+ $x 1) $y);
+        };
+        WHEN: TEST(== $direction "left"){
+            UPDATE (RobotB) (RobotB (- $x 1) $y);
+        };
+        WHEN: TEST(== $direction "up"){
+            UPDATE (RobotB) (RobotB $x (+ $y 1));
+        };
+        WHEN: TEST(== $direction "down"){
+            UPDATE (RobotB) (RobotB $x (- $y 1));
+        };
+
+        RETRIEVE RobotB $x $y;
+        EXECUTE println "Robot B moved " $direction;
+        EXECUTE println "Robot B position: ("$x","$y")";
+    FAILURE:
+        EXECUTE println "Failed to move B..Please try again!.\n";
+}
